@@ -35,6 +35,85 @@ describe('testing user-router', function() {
       .catch(done);
     });
 ///stopping here for now
-    it()
-  })
-})
+    it('a missing field should respond with 400 status', done => {
+      superagent.post(`${baseURL}/api/signup`)
+      .send({username: 'newname'})
+      .then(done)
+      .catch(err => {
+        expect(err.status).to.equal(400);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('bad endpoint should respond with 404 status', done => {
+      superagent.post(`${baseURL}/api/notsignup`)
+    .send({})
+    .then(done)
+    .catch(err => {
+      expect(err.status).to.equal(404);
+      done();
+    });
+
+      describe('POST username or email already taken', function() {
+        before(done => {
+          superagent.post(`${baseURL}/api/signup`)
+        .send({
+          username: 'Doc Ock',
+          password: 'spideysux',
+          email: 'dr8@email.com',
+        })
+        .then(() => done())
+        .catch(done);
+        });
+        it('should respond with 409 status', done => {
+          superagent.post(`${baseURL}/api/signup`)
+        .send({
+          username: 'J. Jonah Jameson',
+          password: 'bugle',
+          email: 'dr8@email.com',
+        })
+        .then(done)
+        .catch(err => {
+          expect(err.status).to.equal(409);
+          done();
+        })
+        .catch(done);
+        });
+      });
+    });
+    describe('testing GET /api/login', function() {
+      before(userMock.bind(this));
+      it('should send back a token', (done) => {
+        superagent.get(`${baseURL}/api/login`)
+      .auth(this.tempUser.username, '1234')
+      .then(res => {
+        expect(res.status).to.equal(200);
+        expect(Boolean(res.text)).to.equal(true);
+        done();
+      })
+      .catch(done);
+      });
+      it('incorrect password should give a 401 unauthorized', (done) => {
+        superagent.get(`${baseURL}/api/login`)
+      .auth(this.tempUser.username, '4231')
+      .then(done)
+      .catch(err => {
+        expect(err.status).to.equal(401);
+        done();
+      })
+      .catch(done);
+      });
+      it('should give a 401 if not auth header', (done) => {
+        superagent.get(`${baseURL}/api/login`)
+      .auth('dontwork', '1234')
+      .then(done)
+      .catch(err => {
+        expect(err.status).to.equal(401);
+        done();
+      })
+      .catch(done);
+      });
+    });
+  });
+});
